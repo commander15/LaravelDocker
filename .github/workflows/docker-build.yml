@@ -32,5 +32,5 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:php-8.3
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:php-8.5
 
