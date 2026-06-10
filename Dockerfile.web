@@ -14,6 +14,7 @@ COPY ./startup/ /home/laravel/startup/bin/
 # Install system packages, compile extensions, set exec mode on utilities and clean caches in ONE layer
 RUN apk add --no-cache supervisor \
     && apk add --no-cache nginx \
+    # && apk add --no-cache git \
     && chmod +x /usr/local/bin/install-php-extensions \
     && install-php-extensions gd bcmath opcache zip intl \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* \

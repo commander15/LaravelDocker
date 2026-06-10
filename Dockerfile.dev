@@ -59,9 +59,6 @@ WORKDIR /var/www/html
 # Copying template web entry
 COPY ./public/ ./public/
 
-# Fetching code
-RUN rm --recursive --force * && git clone $GIT_URL .
-
 # Switch to laravel user
 USER laravel
 
