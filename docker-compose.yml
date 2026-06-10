@@ -1,0 +1,52 @@
+name: laravel
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.web
+    image: commander15/laravel:13-web
+    container_name: laravel_web
+    ports:
+      - "4000:8000"
+    env_file:
+      - .env
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - laravel_network
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.worker
+    image: commander15/laravel:13-worker
+    container_name: laravel_worker
+    volumes:
+      - storage_data:/var/www/html/storage
+    env_file:
+      - .env
+    networks:
+      - laravel_network
+
+  aio:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.aio
+    image: commander15/laravel:13-aio
+    container_name: laravel_aio
+    ports:
+      - "6000:8000"
+    env_file:
+      - .env
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - laravel_network
+
+volumes:
+  storage_data:
+
+networks:
+  laravel_network:
+    driver: bridge

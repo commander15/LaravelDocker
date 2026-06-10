@@ -25,12 +25,29 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    # Step 4: Build the image in the cloud and push it
+    # Step 4: Build the web image in the cloud and push it
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./Dockerfile
+        file: ./Dockerfile.web
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:php-8.5
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:13-web
 
+    # Step 5: Build the worker image in the cloud and push it
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.worker
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:13-worker
+
+    # Step 6: Build the aio image in the cloud and push it
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.aio
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:13-aio

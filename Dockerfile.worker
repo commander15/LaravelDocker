@@ -1,0 +1,38 @@
+FROM php:8.5-cli-alpine
+
+# Install the PHP extension installer script safely
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+# Copy utilities
+COPY ./bin/laravel-supervisor /usr/bin/laravel-supervisor
+
+# Install system packages, compile extensions, set exec mode on utilities and clean caches in ONE layer
+RUN apk add --no-cache supervisor \
+    && chmod +x /usr/local/bin/install-php-extensions \
+    && install-php-extensions gd bcmath opcache zip intl \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* \
+    && chmod +x /usr/bin/laravel-supervisor
+
+# Copy the official Composer binary
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Create a non-root system user for security matching ownership intent and configure Supervisor paths to be writable by that user
+RUN addgroup -g 1000 laravel && \
+    adduser -u 1000 -G laravel -s /bin/sh -D laravel && \
+    mkdir -p /var/run/supervisord && \
+    chown -R laravel:laravel /var/run/supervisord
+
+# Copy global and other configs
+COPY ./supervisord.conf /etc/supervisor/supervisord.conf
+COPY --chown=laravel:laravel ./supervisor/queue.conf /home/laravel/.config/supervisor/queue.conf
+COPY --chown=laravel:laravel ./supervisor/schedule.conf /home/laravel/.config/supervisor/schedule.conf
+
+# Set up runtime configuration workspace
+WORKDIR /var/www/html
+
+USER laravel
+
+EXPOSE 8000
+
+# Default command assumes an API/Web node. Override this via docker-compose/K8s for workers!
+CMD ["/usr/bin/laravel-supervisor"]

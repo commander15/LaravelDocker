@@ -226,7 +226,7 @@
                     <p>To drop your Laravel project into this image, mount or copy your code directory into the application root directory:</p>
                     <pre><code>/var/www/html</code></pre>
                     <p>Ensure permissions are correctly mapped for the web server user:</p>
-                    <pre><code>chown -R www-data:www-data storage bootstrap/cache</code></pre>
+                    <pre><code>chown -R laravel:laravel storage bootstrap/cache</code></pre>
                 </section>
 
                 <section>
