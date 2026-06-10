@@ -8,7 +8,7 @@ services:
     image: commander15/laravel:13-web
     container_name: laravel_web
     ports:
-      - "4000:8000"
+      - "8000:8000"
     env_file:
       - .env
     volumes:
@@ -36,7 +36,7 @@ services:
     image: commander15/laravel:13-aio
     container_name: laravel_aio
     ports:
-      - "6000:8000"
+      - "4000:8000"
     env_file:
       - .env
     volumes:

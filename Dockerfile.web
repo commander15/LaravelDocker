@@ -5,7 +5,7 @@ ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/do
 
 # Copy utilities
 COPY ./bin/laravel-supervisor /usr/bin/laravel-supervisor
-COPY ./bin/1-migrate.sh /home/laravel/startup/bin/1-migrate.sh
+COPY ./bin/01-migrate.sh /home/laravel/startup/bin/01-migrate.sh
 
 # Install system packages, compile extensions, set exec mode on utilities and clean caches in ONE layer
 RUN apk add --no-cache nginx supervisor \
@@ -13,7 +13,7 @@ RUN apk add --no-cache nginx supervisor \
     && install-php-extensions gd bcmath opcache zip intl \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* \
     && chmod +x /usr/bin/laravel-supervisor \
-    && chmod +x /home/laravel/startup/bin/1-migrate.sh
+    && chmod +x /home/laravel/startup/bin/01-migrate.sh
 
 # Copy the official Composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -40,5 +40,4 @@ USER laravel
 
 EXPOSE 8000
 
-# Default command assumes an API/Web node. Override this via docker-compose/K8s for workers!
 CMD ["/usr/bin/laravel-supervisor"]

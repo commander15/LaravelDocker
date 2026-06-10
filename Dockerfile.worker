@@ -32,7 +32,4 @@ WORKDIR /var/www/html
 
 USER laravel
 
-EXPOSE 8000
-
-# Default command assumes an API/Web node. Override this via docker-compose/K8s for workers!
 CMD ["/usr/bin/laravel-supervisor"]
