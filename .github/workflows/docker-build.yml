@@ -51,3 +51,12 @@ jobs:
         file: ./Dockerfile.aio
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:13-aio
+
+    # Step 7: Build the dev image in the cloud and push it
+    - name: Building Dev image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.dev
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/laravel:13-dev
