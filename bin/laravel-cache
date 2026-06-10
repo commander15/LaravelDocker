@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+php /var/www/html/artisan route:cache
+php /var/www/html/artisan view:cache

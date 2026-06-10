@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+composer install --no-dev --no-scripts --no-autoloader --prefer-dist --working-dir /var/www/html
