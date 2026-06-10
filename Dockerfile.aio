@@ -62,5 +62,7 @@ COPY ./public/ ./public/
 # Switch to laravel user
 USER laravel
 
+EXPOSE 8000
+
 # Run supervisor
 CMD ["/usr/bin/laravel-supervisor"]
