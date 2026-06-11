@@ -4,12 +4,16 @@ FROM php:8.5-fpm-alpine
 # STEP 1: Installing core dependencies and utilities
 # ============================================================================================================================
 
+# Create a non-root system user for security matching ownership intent
+RUN addgroup -g 1000 laravel \
+    && adduser -u 1000 -G laravel -s /bin/sh -D laravel \
+
 # Install the PHP extension installer script safely
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
 # Copy utilities and startup scripts
 COPY ./bin/ /usr/bin/
-COPY ./startup/ /home/laravel/startup/bin/
+COPY --chown=laravel:laravel ./startup/ /home/laravel/startup/bin/
 
 # Install system packages, compile extensions, set exec mode on utilities and clean caches in ONE layer
 RUN apk add --no-cache supervisor \
@@ -27,10 +31,8 @@ RUN apk add --no-cache supervisor \
 # Copy the official Composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create a non-root system user for security matching ownership intent and configure paths to be writable by that user
-RUN addgroup -g 1000 laravel \
-    && adduser -u 1000 -G laravel -s /bin/sh -D laravel \
-    && mkdir -p /var/lib/nginx/tmp /var/log/nginx /var/run/nginx \
+# Configure paths to be writable by the non user
+RUN mkdir -p /var/lib/nginx/tmp /var/log/nginx /var/run/nginx \
     && chown -R laravel:laravel /var/lib/nginx /var/log/nginx /var/run/nginx \
     && mkdir -p /var/run/supervisord \
     && chown -R laravel:laravel /var/run/supervisord
