@@ -15,7 +15,8 @@ RUN addgroup -g 1000 ${GROUP} \
     && mkdir -p /var/lib/nginx/tmp /var/log/nginx /var/run/nginx \
     && chown -R ${USER}:${GROUP} /var/lib/nginx /var/log/nginx /var/run/nginx \
     && mkdir -p /var/run/supervisord \
-    && chown -R ${USER}:${GROUP} /var/run/supervisord
+    && chown -R ${USER}:${GROUP} /var/run/supervisord \
+    && chown -R ${USER}:${GROUP} /run
 
 # Copy the official Composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
