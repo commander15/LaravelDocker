@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 
+php artisan config:cache
 php /var/www/html/artisan route:cache
 php /var/www/html/artisan view:cache

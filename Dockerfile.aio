@@ -1,41 +1,51 @@
 FROM php:8.5-fpm-alpine
 
+ENV USER=laravel
+ENV GROUP=laravel
+ENV STARTUP_SCRIPTS_DIR=/home/laravel/startup/bin
+ENV SUPERVISOR_CONFIGS_DIR=/home/laravel/supervisor/config
+
 # ============================================================================================================================
-# STEP 1: Installing core dependencies and utilities
+# STEP 1: Preparing environment
 # ============================================================================================================================
 
 # Create a non-root system user for security matching ownership intent
-RUN addgroup -g 1000 laravel \
-    && adduser -u 1000 -G laravel -s /bin/sh -D laravel \
-
-# Install the PHP extension installer script safely
-ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-
-# Copy utilities and startup scripts
-COPY ./bin/ /usr/bin/
-COPY --chown=laravel:laravel ./startup/ /home/laravel/startup/bin/
-
-# Install system packages, compile extensions, set exec mode on utilities and clean caches in ONE layer
-RUN apk add --no-cache supervisor \
-    && apk add --no-cache nginx \
-    # && apk add --no-cache git \
-    && chmod +x /usr/local/bin/install-php-extensions \
-    && install-php-extensions gd bcmath opcache zip intl \
-    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* \
-    && chmod +x /home/laravel/startup/bin/10-init-worker.sh \
-    && chmod +x /usr/bin/laravel-supervisor \
-    && chmod +x /usr/bin/laravel-cache \
-    && chmod +x /usr/bin/composer-install \
-    && chmod +x /usr/bin/composer-optimize
+RUN addgroup -g 1000 ${GROUP} \
+    && adduser -u 1000 -G ${GROUP} -s /bin/sh -D ${USER} \
+    && mkdir -p /var/lib/nginx/tmp /var/log/nginx /var/run/nginx \
+    && chown -R ${USER}:${GROUP} /var/lib/nginx /var/log/nginx /var/run/nginx \
+    && mkdir -p /var/run/supervisord \
+    && chown -R ${USER}:${GROUP} /var/run/supervisord
 
 # Copy the official Composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Configure paths to be writable by the non user
-RUN mkdir -p /var/lib/nginx/tmp /var/log/nginx /var/run/nginx \
-    && chown -R laravel:laravel /var/lib/nginx /var/log/nginx /var/run/nginx \
-    && mkdir -p /var/run/supervisord \
-    && chown -R laravel:laravel /var/run/supervisord
+# Install the PHP extension installer script safely
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+# Install system packages, compile extensions and clean caches in ONE layer
+RUN apk add --no-cache supervisor \
+    && apk add --no-cache nginx \
+    # && apk add --no-cache git \
+    && chmod +x /usr/local/bin/install-php-extensions \
+    && install-php-extensions \
+        bcmath ctype mbstring openssl curl fileinfo json \
+        xml intl opcache zip \
+        dom gd \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
+
+# Copy utilities and startup scripts
+COPY ./bin/ /usr/bin/
+COPY --chown=${USER}:${GROUP} ./startup/worker/ ${STARTUP_SCRIPTS_DIR}/
+# COPY --chown=${USER}:${GROUP} ./startup/dev/ ${STARTUP_SCRIPTS_DIR}/
+
+# Set proper permissions on utilities
+RUN chmod +x /usr/bin/laravel-supervisor \
+    && chmod +x /usr/bin/laravel-cache \
+    && chmod +x ${STARTUP_SCRIPTS_DIR}/10-init-worker.sh \
+    # && chmod +x ${STARTUP_SCRIPTS_DIR}/15-git-clone.sh \
+    && chmod +x /usr/bin/composer-install \
+    && chmod +x /usr/bin/composer-optimize
 
 # ============================================================================================================================
 # STEP 2: Copying global and other configs
@@ -47,9 +57,8 @@ COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./nginx/default.conf /etc/nginx/http.d/default.conf
 
 # Copy specialized configs
-COPY --chown=laravel:laravel ./supervisor/queue.conf /home/laravel/.config/supervisor/queue.conf
-COPY --chown=laravel:laravel ./supervisor/schedule.conf /home/laravel/.config/supervisor/schedule.conf
-COPY --chown=laravel:laravel ./supervisor/serve.conf /home/laravel/.config/supervisor/serve.conf
+COPY --chown=laravel:laravel ./supervisor/queue.conf ./supervisor/schedule.conf ${SUPERVISOR_CONFIGS_DIR}/
+COPY --chown=laravel:laravel ./supervisor/serve.conf ${SUPERVISOR_CONFIGS_DIR}/
 
 # ============================================================================================================================
 # STEP 3: Setting up runtime environment
