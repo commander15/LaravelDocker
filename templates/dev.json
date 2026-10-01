@@ -1,0 +1,41 @@
+{
+	"base_image": "php:8.5-fpm-alpine",
+	"apk_packages": [
+		"nginx",
+		"supervisor",
+		"git"
+	],
+	"php_extensions": [
+		"bcmath",
+		"ctype",
+		"mbstring",
+		"openssl",
+		"curl",
+		"fileinfo",
+		"json",
+		"xml",
+		"intl",
+		"opcache",
+		"zip",
+		"dom",
+		"gd"
+	],
+	"supervisor_configs": [
+		"serve.conf",
+		"queue.conf",
+		"reverb.conf",
+		"scheduler.conf"
+	],
+	"system_dirs": [
+		"/var/lib/nginx/tmp",
+		"/var/log/nginx",
+		"/var/run/nginx",
+		"/var/run/supervisord",
+		"/var/run/supervisord",
+		"/run"
+	],
+	"startup_scripts": [
+		"10-init-worker.sh",
+		"15-git-clone.sh"
+	]
+}

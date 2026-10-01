@@ -1,0 +1,54 @@
+FROM php:8.5-cli-alpine
+
+ENV USER=laravel
+ENV GROUP=laravel
+ENV WWW_DIR=/var/www/html
+
+# ============================================================================================================================
+# STEP 1: Preparing environment
+# ============================================================================================================================
+
+# Install the PHP extension installer script safely
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+# Compile extensions and clean caches in ONE layer
+RUN chmod +x /usr/local/bin/install-php-extensions \
+    && install-php-extensions \
+        bcmath ctype mbstring openssl curl fileinfo json \
+        xml intl opcache zip \
+        dom gd \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
+
+# Copy the official Composer binary
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy utilities
+COPY ./bin/laravel-cache ./bin/composer-install ./bin/composer-optimize /usr/bin/
+
+# Set proper permissions on utilities
+RUN chmod +x /usr/bin/laravel-cache \
+    && chmod +x /usr/bin/composer-install \
+    && chmod +x /usr/bin/composer-optimize
+
+# Create a non-root system user for security matching ownership intent
+RUN addgroup -g 1000 ${GROUP} \
+    && adduser -u 1000 -G ${GROUP} -s /bin/sh -D ${USER} \
+    && mkdir -p ${WWW_DIR} \
+    && chown -R ${USER}:${GROUP} ${WWW_DIR}
+
+# ============================================================================================================================
+# STEP 2: Setting up runtime environment
+# ============================================================================================================================
+
+# Set up runtime configuration workspace
+WORKDIR ${WWW_DIR}
+
+# Copying template web entry
+COPY --chown=${USER}:${GROUP} ./artisan ./
+COPY --chown=${USER}:${GROUP} ./public/ ./public/
+
+# Switch to laravel user
+USER ${USER}
+
+# Launch tinker
+CMD ["php", "artisan", "tinker"]
